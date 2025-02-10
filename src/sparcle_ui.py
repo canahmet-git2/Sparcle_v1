@@ -1,8 +1,9 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                           QListWidget, QLabel, QPushButton, QSlider)
+                           QListWidget, QLabel, QPushButton, QSlider, QListWidgetItem)
 from PyQt6.QtCore import Qt
 from .preview_panel import ParticlePreviewPanel
 from .preset_manager import PresetManager
+from .presets.particle_presets import PresetCategory, get_all_presets, get_preset_by_name
 
 class SparcleMainWindow(QMainWindow):
     def __init__(self):
@@ -29,7 +30,13 @@ class SparcleMainWindow(QMainWindow):
         # Preset list
         self.preset_list = QListWidget()
         left_layout.addWidget(QLabel("Particle Presets"))
-        left_layout.addWidget(self.preset_list)
+        
+        # Add presets by category
+        for preset in get_all_presets().values():
+            item = QListWidgetItem(f"{preset.category.value}: {preset.name}")
+            item.setToolTip(preset.description)
+            item.setData(Qt.ItemDataRole.UserRole, preset.name)
+            self.preset_list.addItem(item)
         
         # Controls
         controls_layout = QVBoxLayout()
@@ -77,5 +84,7 @@ class SparcleMainWindow(QMainWindow):
         pass
         
     def load_preset(self, item):
-        # TODO: Implement preset loading
-        pass 
+        preset_name = item.data(Qt.ItemDataRole.UserRole)
+        preset = get_preset_by_name(preset_name)
+        if preset:
+            self.preview_panel.set_preset(preset) 
